@@ -1,7 +1,7 @@
 module evaporation
   use variable_precision, only: wp
   use passive_fields, only: rho, qws, TdegK
-! use mphys_switches, only: i_m3r, l_3mr
+  use mphys_switches, only: i_m3r, l_3mr
   use mphys_switches, only: i_qr, i_nr, i_qv, i_ql, l_2mr, i_am2, &
        i_an2, i_am3, i_an3, i_am4, i_am5, l_process, aero_index, &
        l_separate_rain, i_am6, i_an6, i_am9, l_warm, i_an11, i_an12, l_passivenumbers, &
@@ -51,14 +51,14 @@ contains
     ! Local variables
     real(wp) :: dmass, dnumber, dnumber_a, dnumber_d
     real(wp) :: m1, m2, dm1
-!   real(wp) :: m3, dm3
+    real(wp) :: m3, dm3
 
     real(wp) :: n0, lam, mu
     real(wp) :: V_r, AB
 
     real(wp) :: rain_mass
     real(wp) :: rain_number
-!   real(wp) :: rain_m3
+    real(wp) :: rain_m3
     real(wp) :: qv
     real(wp) :: cf
 
@@ -85,13 +85,13 @@ contains
        qv=qfields(k, i_qv)
        rain_mass=qfields(k, i_qr)
        if (l_2mr)rain_number=qfields(k, i_nr)
-       ! if (l_3mr)rain_m3=qfields(k, i_m3r)
+       if (l_3mr)rain_m3=qfields(k, i_m3r)
        
        if (qv/qws(k,ixy_inner) < 1.0-ss_small .and. qfields(k, i_ql) < ql_tidy .and. rain_mass > qr_tidy) then
           
           m1=rain_mass/c_r
           if (l_2mr) m2=rain_number
-          ! if (l_3mr) m3=rain_m3
+          if (l_3mr) m3=rain_m3
 
           l_rain_test=.false.
           if (l_2mr) l_rain_test=rain_number>0
@@ -121,13 +121,13 @@ contains
              dnumber=0.0
              if (l_inhom_revp) dnumber=dm1*m2/m1
           end if
-          ! if (l_3mr) dm3=dm1*m3/m1
+          if (l_3mr) dm3=dm1*m3/m1
 
           if (l_2mr) then
              if (dnumber*dt > rain_number .or. dmass*dt >= rain_mass-qr_tidy) then
                 dmass=rain_mass/dt
                 dnumber=rain_number/dt
-               ! if (l_3mr) dm3=m3/dt
+               if (l_3mr) dm3=m3/dt
              end if
           end if
 
@@ -139,9 +139,9 @@ contains
           if (l_2mr) then
              procs(i_nr, i_prevp%id)%column_data(k)=-dnumber
           end if
-          ! if (l_3mr) then
-          !    procs(i_m3r, i_prevp%id)%column_data(k)=-dm3
-          ! end if
+          if (l_3mr) then
+             procs(i_m3r, i_prevp%id)%column_data(k)=-dm3
+          end if
      
       !============================
       ! aerosol processing

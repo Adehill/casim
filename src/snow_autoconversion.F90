@@ -5,17 +5,18 @@ module snow_autoconversion
        i_qi, i_qs, i_ni, i_ns, &
        i_qv, i_th, &
        l_harrington
-! use mphys_switches, only:  i_m3s
+  use mphys_switches, only: i_m3s
   use mphys_constants, only: fixed_ice_number,   &
        Lv,ka, Dv, Rv
 ! use mphys_parameters, only: mu_saut
   use mphys_parameters, only: snow_params, ice_params,   &
        DImax, tau_saut, DI2S
+  use mphys_parameters, only: mu_saut
   use process_routines, only: process_rate, i_saut
   use qsat_funs, only: qisaturation
   use thresholds, only: thresh_small
   use special, only: pi
-! use m3_incs, only: m3_inc_type3
+  use m3_incs, only: m3_inc_type3
 
   use distributions, only: dist_lambda, dist_mU
 
@@ -44,7 +45,7 @@ contains
     type(process_rate), intent(inout), target :: procs(:,:)
 
     real(wp) :: dmass, dnumber
-!   real(wp) :: dm1,dm2,dm3
+    real(wp) :: dm1, dm2, dm3
     real(wp) :: ice_lam, ice_mu
     real(wp) :: ice_mass
     real(wp) :: ice_number
@@ -115,12 +116,12 @@ contains
              
 
             if (dmass*dt > thresh_small(i_qs)) then
-              ! if (snow_params%l_3m) then
-              !   dm1=dt*dmass/snow_params%c_x
-              !   dm2=dt*dnumber
-              !   call m3_inc_type3(p1, p2, p3, dm1, dm2, dm3, mu_saut)
-              !   dm3=dm3/dt
-              ! end if
+              if (snow_params%l_3m) then
+                dm1=dt*dmass/snow_params%c_x
+                dm2=dt*dnumber
+                call m3_inc_type3(snow_params%p1, snow_params%p2, snow_params%p3, dm1, dm2, dm3, mu_saut)
+                dm3=dm3/dt
+              end if
                
               procs(i_qi, i_saut%id)%column_data(k)=-dmass
               procs(i_qs, i_saut%id)%column_data(k)=dmass
@@ -131,9 +132,9 @@ contains
               if (snow_params%l_2m) then
                 procs(i_ns, i_saut%id)%column_data(k)=dnumber
               end if
-              ! if (snow_params%l_3m) then
-              !   procs(i_m3s, i_saut%id)%column_data(k)=dm3
-              ! end if
+              if (snow_params%l_3m) then
+                procs(i_m3s, i_saut%id)%column_data(k)=dm3
+              end if
             end if
             !==============================
             ! No aerosol processing needed

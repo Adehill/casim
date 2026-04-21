@@ -116,7 +116,7 @@ contains
     real(wp) :: n1, n2, n3
     real(wp) :: hydro_mass
     real(wp) :: n0, lam, mu, u1r, u2r, u1r2, u2r2
-!   real(wp) :: u3r, u3r2
+    real(wp) :: u3r, u3r2
     integer :: k
 
     real(wp) :: p1, p2, p3
@@ -197,8 +197,8 @@ contains
     b2_x=params%b2_x
     f2_x=params%f2_x
 
-    if (params%l_2m) flux_n2(:)=0.0     
-!!$    if (params%l_3m) flux_n3=0.0      
+    if (params%l_2m) flux_n2(:)=0.0
+    if (params%l_3m) flux_n3=0.0      
 
     select case (params%id)
     case (1_iwp) !cloud
@@ -236,7 +236,7 @@ contains
 
       hydro_mass=qfields(k, params%i_1m)
       if (params%l_2m) m2=qfields(k, params%i_2m)
-!!$      if (params%l_3m) m3=qfields(k, params%i_3m)
+      if (params%l_3m) m3=qfields(k, params%i_3m)
 
       l_fluxin=.false.
       l_fluxout=.false.
@@ -281,9 +281,9 @@ contains
              u2r=a_x*Grho(k)*(lam**(1.0+mu+sp2)*(lam+f_x)**(-(1.0+mu+sp2+b_x))) &
              *(Gammafunc(1.0+mu+sp2+b_x)/Gammafunc(1.0+mu+sp2))
 
-!!$        if (params%l_3m)     &
-!!$             u3r=a_x*Grho(k)*(lam**(1.0+mu+sp3)*(lam+f_x)**(-(1.0+mu+sp3+b_x))) &
-!!$             *(Gammafunc(1.0+mu+sp3+b_x)/Gammafunc(1.0+mu+sp3))
+        if (params%l_3m)     &
+             u3r=a_x*Grho(k)*(lam**(1.0+mu+sp3)*(lam+f_x)**(-(1.0+mu+sp3+b_x))) &
+             *(Gammafunc(1.0+mu+sp3+b_x)/Gammafunc(1.0+mu+sp3))
 
         if (l_abelshipway .and. params%id==rain_params%id) then ! rain can use abel and shipway formulation
           u1r2=a2_x*Grho(k)*(lam**(1.0+mu+sp1)*(lam+f2_x)**(-(1.0+mu+sp1+b2_x)))   &
@@ -296,11 +296,11 @@ contains
             u2r=u2r+u2r2
           end if
 
-!!$          if (params%l_3m) then
-!!$            u3r2=a2_x*Grho(k)*(lam**(1.0+mu+sp3)*(lam+f2_x)**(-(1.0+mu+sp3+b2_x))) &
-!!$                 *(Gammafunc(1.0+mu+sp3+b2_x)/Gammafunc(1.0+mu+sp3))
-!!$            u3r=u3r+u3r2
-!!$          end if
+          if (params%l_3m) then
+            u3r2=a2_x*Grho(k)*(lam**(1.0+mu+sp3)*(lam+f2_x)**(-(1.0+mu+sp3+b2_x))) &
+                 *(Gammafunc(1.0+mu+sp3+b2_x)/Gammafunc(1.0+mu+sp3))
+            u3r=u3r+u3r2
+          end if
         end if
 
         ! fall speeds shouldn't get too big...
@@ -316,19 +316,19 @@ contains
           end if
         else
           if (params%l_2m)u2r=min(u2r,params%maxv)
-!!$          if (params%l_3m)u3r=min(u3r,params%maxv)
+          if (params%l_3m)u3r=min(u3r,params%maxv)
         end if
 
         ! fall speeds shouldn't be negative (can happen with original AS formulation)
         u1r=max(u1r,0.0_wp)
         if (params%l_2m)u2r=max(u2r,0.0_wp)
-!!$        if (params%l_3m)u3r=max(u3r,0.0_wp)
+        if (params%l_3m)u3r=max(u3r,0.0_wp)
 
          flux_n1(k)=n1*u1r
            
          if (params%l_2m) flux_n2(k)=n2*u2r
         
-        !if (params%l_3m) flux_n3(k)=n3*u3r
+        if (params%l_3m) flux_n3(k)=n3*u3r
 
         precip1d(k) = flux_n1(k)*c_x
         
@@ -342,7 +342,7 @@ contains
       if (l_fluxout) then !flux out (flux(k+1) will be zero if no flux in)
         dn1=(flux_n1(k+1)-flux_n1(k))*rdz_on_rho(k,ixy_inner)
         if (params%l_2m) dn2=(flux_n2(k+1)-flux_n2(k))*rdz_on_rho(k,ixy_inner)
-        !if (params%l_3m) dn3=(flux_n3(k+1)-flux_n3(k))*rdz_on_rho(k)
+        if (params%l_3m) dn3=(flux_n3(k+1)-flux_n3(k))*rdz_on_rho(k,ixy_inner)
 
         !============================
         ! aerosol processing
@@ -415,7 +415,7 @@ contains
       else if (l_fluxin) then !flux in, but not out
         dn1=flux_n1(k+1)*rdz_on_rho(k,ixy_inner)
         if (params%l_2m) dn2=flux_n2(k+1)*rdz_on_rho(k,ixy_inner)
-        !if (params%l_3m) dn3=flux_n3(k+1)*rdz_on_rho(k)
+        if (params%l_3m) dn3=flux_n3(k+1)*rdz_on_rho(k,ixy_inner)
 
         !============================
         ! aerosol processing
@@ -514,13 +514,13 @@ contains
 
       dm1=dn1
       dm2=dn2
-      !dm3=dn3
+      dm3=dn3
 
       procs(params%i_1m, iproc%id)%column_data(k)=c_x*dm1
 
       if (params%l_2m) procs(params%i_2m, iproc%id)%column_data(k)=dm2
 
-      !if (params%l_3m) procs(params%i_3m, iproc%id)%column_data(k)=dm3
+      if (params%l_3m) procs(params%i_3m, iproc%id)%column_data(k)=dm3
     end do
 
     IF (lhook) CALL dr_hook(ModuleName//':'//RoutineName,zhook_out,zhook_handle)

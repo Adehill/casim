@@ -54,7 +54,7 @@ contains
     type(process_name) :: i_acw, i_acr ! accretion processes
     real(wp) :: qv
     real(wp) :: dmass, dnumber
-!   real(wp) :: dm1, dm2, dm3, dm3_r, m2, m3
+    real(wp) :: dm1, dm2, dm3, dm3_r, m2, m3
     real(wp) :: num, mass, m1
     real(wp) :: n0, lam, mu, V_x
     real(wp) :: acc_correction
@@ -104,23 +104,23 @@ contains
                 procs(rain_params%i_1m, iproc%id)%column_data(k)=dmass
                 
                 ! 3-moment code retained for future implementation
-                ! if (rain_params%l_3m) then
-                !   m1=qfields(k, rain_params%i_1m)/rain_params%c_x
-                !   m2=qfields(k, rain_params%i_2m)
-                !   m3=qfields(k, rain_params%i_3m)
-                !   dm1=dt*dmass/rain_params%c_x
-                !   dm2=dt*dnumber
+                if (rain_params%l_3m) then
+                  m1=qfields(k, rain_params%i_1m)/rain_params%c_x
+                  m2=qfields(k, rain_params%i_2m)
+                  m3=qfields(k, rain_params%i_3m)
+                  dm1=dt*dmass/rain_params%c_x
+                  dm2=dt*dnumber
                 
-                !   if (m1 > 0.0) then
-                !     call m3_inc_type2(m1, m2, m3, rain_params%p1,      &
-                !          rain_params%p2, rain_params%p3, dm1, dm2, dm3_r)
-                !   else
-                !     call m3_inc_type3(rain_params%p1, rain_params%p2, rain_params%p3,      &
-                !          dm1, dm2, dm3_r, rain_params%fix_mu)
-                !   end if
-                !   dm3_r=dm3_r/dt
-                !   procs(rain_params%i_3m, iproc%id)%column_data(k) = dm3_r
-                ! end if
+                  if (m1 > 0.0) then
+                    call m3_inc_type2(m1, m2, m3, rain_params%p1,      &
+                         rain_params%p2, rain_params%p3, dm1, dm2, dm3_r)
+                  else
+                    call m3_inc_type3(rain_params%p1, rain_params%p2, rain_params%p3,      &
+                         dm1, dm2, dm3_r, rain_params%fix_mu)
+                  end if
+                  dm3_r=dm3_r/dt
+                  procs(rain_params%i_3m, iproc%id)%column_data(k) = dm3_r
+                end if
              else
                 if (params%id==snow_params%id) then
                    i_acw=i_sacw
@@ -146,8 +146,7 @@ contains
                 
                 m1=mass/params%c_x
                 if (params%l_2m) num=qfields(k, params%i_2m)
-                ! 3-moment code retained for future implementation
-                ! if (params%l_3m) m3=qfields(k, params%i_3m)
+                if (params%l_3m) m3=qfields(k, params%i_3m)
                 
                 n0=dist_n0(k,params%id)
                 mu=dist_mu(k,params%id)
@@ -187,34 +186,34 @@ contains
                    procs(rain_params%i_2m, iproc%id)%column_data(k)=dnumber
                 end if
                 ! 3-moment code retained for future implementation
-                ! if (params%l_3m) then
-                !   if (l_meltall) then
-                !     dm3=-m3/dt
-                !   else
-                !     dm1=-dt*dmass/params%c_x
-                !     dm2=-dt*dnumber
-                !     m2=num
-                !     call m3_inc_type2(m1, m2, m3, params%p1, params%p2, params%p3, dm1, dm2, dm3)
-                !     dm3=dm3/dt
-                !   end if
-                !   procs(params%i_3m, iproc%id)%column_data(k)=dm3
-                ! end if
+                if (params%l_3m) then
+                  if (l_meltall) then
+                    dm3=-m3/dt
+                  else
+                    dm1=-dt*dmass/params%c_x
+                    dm2=-dt*dnumber
+                    m2=num
+                    call m3_inc_type2(m1, m2, m3, params%p1, params%p2, params%p3, dm1, dm2, dm3)
+                    dm3=dm3/dt
+                  end if
+                  procs(params%i_3m, iproc%id)%column_data(k)=dm3
+                end if
                 
-                ! if (rain_params%l_3m) then
-                !   if (params%l_3m) then
-                !     call m3_inc_type4(dm3, rain_params%c_x, params%c_x, params%p3, dm3_r)
-                !   else
-                !     m1=qfields(k, rain_params%i_1m)/rain_params%c_x
-                !     m2=qfields(k, rain_params%i_2m)
-                !     m3=qfields(k, rain_params%i_3m)
+                if (rain_params%l_3m) then
+                  if (params%l_3m) then
+                    call m3_inc_type4(dm3, rain_params%c_x, params%c_x, params%p3, dm3_r)
+                  else
+                    m1=qfields(k, rain_params%i_1m)/rain_params%c_x
+                    m2=qfields(k, rain_params%i_2m)
+                    m3=qfields(k, rain_params%i_3m)
                 
-                !     dm1=dt*dmass/rain_params%c_x
-                !     dm2=dt*dnumber
-                !     call m3_inc_type2(m1, m2, m3, rain_params%p1, rain_params%p2, rain_params%p3, dm1, dm2, dm3_r, rain_params%fix_mu)
-                !     dm3_r=dm3_r/dt
-                !   end if
-                !   procs(rain_params%i_3m, iproc%id)%column_data(k) = dm3_r
-                ! end if
+                    dm1=dt*dmass/rain_params%c_x
+                    dm2=dt*dnumber
+                    call m3_inc_type2(m1, m2, m3, rain_params%p1, rain_params%p2, rain_params%p3, dm1, dm2, dm3_r, rain_params%fix_mu)
+                    dm3_r=dm3_r/dt
+                  end if
+                  procs(rain_params%i_3m, iproc%id)%column_data(k) = dm3_r
+                end if
              end if
              !----------------------
              ! Aerosol processing...
