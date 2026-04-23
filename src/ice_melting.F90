@@ -209,7 +209,10 @@ contains
                 
                     dm1=dt*dmass/rain_params%c_x
                     dm2=dt*dnumber
-                    call m3_inc_type2(m1, m2, m3, rain_params%p1, rain_params%p2, rain_params%p3, dm1, dm2, dm3_r, rain_params%fix_mu)
+                    call m3_inc_type2(m1, m2, m3,                &
+                        rain_params%p1, rain_params%p2,         &
+                        rain_params%p3, dm1, dm2, dm3_r,        &
+                        rain_params%fix_mu)
                     dm3_r=dm3_r/dt
                   end if
                   procs(rain_params%i_3m, iproc%id)%column_data(k) = dm3_r

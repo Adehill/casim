@@ -243,7 +243,9 @@ module mphys_parameters
        -999,         -999,    -999,         & ! moment indices (set elsewhere)
        .false.,      .false.,    .false.,   & ! moment logicals (set elsewhere)
        100e-6,       0.006,                 & ! size limits (m)
-       2.0,          0.1e6,                 & ! fixed parameter values for lower order representations   !!mu=2 from field et al. 2007
+       ! fixed parameter values for lower order representations
+       ! mu=2 from field et al. 2007
+       2.0,          0.1e6,                 &
       10.0,                                 & ! Maximum realistic bulk fall speed (m/s)
        ! Initialise all gamma functions to 0
        0.0,             0.0,                & ! gamma for moments p1 and p2
