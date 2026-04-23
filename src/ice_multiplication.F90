@@ -252,7 +252,8 @@ contains
                  homr_mass=procs(graupel_params%i_1m, i_homr%id)%column_data(k)/cf_graupel ! ingraupel process rate (kg / kg-1)
 
             if (graupel_params%i_2m > 0) &
-                 homr_number=procs(graupel_params%i_2m, i_homr%id)%column_data(k)/cf_graupel ! ingraupel process rate (number / kg-1)
+                 homr_number=procs(graupel_params%i_2m, i_homr%id)%column_data(k) &
+                     /cf_graupel ! ingraupel process rate (number / kg-1)
 
             if ((homr_mass*cf_graupel)*dt > thresh_small(graupel_params%i_1m)  &
                 .and. (homr_number*cf_graupel)*dt > thresh_small(graupel_params%i_2m)) then 

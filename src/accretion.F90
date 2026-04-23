@@ -1,7 +1,7 @@
 module accretion
   use variable_precision, only: wp
   use passive_fields, only: rho
-! use mphys_switches, only: i_m3r, l_3mr
+  use mphys_switches, only: i_m3r, l_3mr
   use mphys_switches, only: i_ql, i_qr, i_nl, l_2mc, &
        l_aacc, i_am4, i_am5, l_process, active_rain, isol, l_preventsmall, &
        l_prf_cfrac, i_cfl, i_cfr, l_kk00
@@ -12,7 +12,7 @@ module accretion
   use thresholds, only: ql_small, qr_small, cfliq_small
   use sweepout_rate, only: sweepout
   use distributions, only: dist_lambda, dist_mu, dist_n0
-! use m3_incs, only: m3_inc_type2
+  use m3_incs, only: m3_inc_type2
   use casim_stph, only: l_rp2_casim, fixed_cloud_number_rp
 
   implicit none
@@ -53,13 +53,13 @@ contains
     ! Local Variables
 
     real(wp) :: dmass, dnumber, damass
-!   real(wp) :: m1, m2, m3, dm1, dm2, dm3
+    real(wp) :: m1, m2, m3, dm1, dm2, dm3
 
     real(wp) :: cloud_mass
     real(wp) :: cloud_number
     real(wp) :: rain_mass
-!   real(wp) :: rain_number
-!   real(wp) :: rain_m3
+    real(wp) :: rain_number
+    real(wp) :: rain_m3
     real(wp) :: cf_liquid, cf_rain
 
 
@@ -114,6 +114,8 @@ contains
        
     
        ! if (l_3mr) rain_m3 = qfields(k, i_m3r)
+       if (l_3mr) rain_number = qfields(k, params%i_2m) / cf_rain
+       if (l_3mr) rain_m3 = qfields(k, i_m3r)
        
        if (cloud_mass*cf_liquid > ql_small .and. rain_mass*cf_rain > qr_small) then
           if (l_kk_acw) then
@@ -152,17 +154,16 @@ contains
              procs(i_nl, i_pracw%id)%column_data(k)=-dnumber
           end if
        
-      ! if (l_3mr) then
-      !    m1=rain_mass/rain_params%c_x
-      !    m2=rain_number
-      !    m3=rain_m3
-             
-      !    dm1=dt*dmass/rain_params%c_x
-      !    dm2=0
-      !    call m3_inc_type2(m1, m2, m3, p1, p2, p3, dm1, dm2, dm3)
-      !    dm3=dm3/dt
-      !    procs(i_m3r, i_pracw%id)%column_data(k) = dm3
-      ! end if
+      if (l_3mr) then
+         m1=rain_mass/params%c_x
+         m2=rain_number
+         m3=rain_m3
+         dm1=dt*dmass/params%c_x
+         dm2=0.0_wp
+         call m3_inc_type2(m1, m2, m3, params%p1, params%p2, params%p3, dm1, dm2, dm3)
+         dm3=dm3/dt
+         procs(i_m3r, i_pracw%id)%column_data(k) = dm3
+      end if
 
     
        end if

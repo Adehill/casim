@@ -4,13 +4,13 @@ module autoconversion
   use mphys_switches, only: i_ql, i_qr, i_nl, i_nr, l_2mc, &
        l_2mr, l_aaut, i_am4, i_am5, cloud_params, rain_params, l_process, &
        l_separate_rain, l_preventsmall, l_prf_cfrac, i_cfl, l_kk00
-! use mphys_switches, only: m3r, l_3mr
+  use mphys_switches, only: i_m3r, l_3mr
   use mphys_constants, only: fixed_cloud_number
   use mphys_parameters, only: rain_params
-! use mphys_parameters, only: mu_aut
+  use mphys_parameters, only: mu_aut
   use process_routines, only: process_rate, i_praut, i_aaut
   use thresholds, only: ql_small, nl_small, qr_small, cfliq_small
-! use m3_incs, only: m3_inc_type3
+  use m3_incs, only: m3_inc_type3
   use casim_stph, only: l_rp2_casim, fixed_cloud_number_rp
 
   implicit none
@@ -38,10 +38,10 @@ contains
 
     ! Local variables
     real(wp) :: dmass, dnumber1, dnumber2, damass
-!   real(wp) :: dm1,dm2,dm3
+    real(wp) :: dm1,dm2,dm3
     real(wp) :: cloud_mass
     real(wp) :: cloud_number
-!   real(wp) :: p1, p2, p3
+    real(wp) :: p1, p2, p3
 !   real(wp) :: k1, k2, k3
     real(wp) :: mu_qc ! < cloud shape parameter (currently only used diagnostically here)
     real(wp) :: cf_liquid
@@ -117,15 +117,15 @@ contains
              dnumber2 = dnumber1
           endif
 
-          ! if (l_3mr) then
-          !    dm1=dt*dmass/rain_params%c_x
-          !    dm2=dt*dnumber2
-          !    p1=rain_params%p1
-          !    p2=rain_params%p2
-          !    p3=rain_params%p3
-          !    call m3_inc_type3(p1, p2, p3, dm1, dm2, dm3, mu_aut)
-          !    dm3=dm3/dt
-          ! end if
+          if (l_3mr) then
+             dm1=dt*dmass/rain_params%c_x
+             dm2=dt*dnumber2
+             p1=rain_params%p1
+             p2=rain_params%p2
+             p3=rain_params%p3
+             call m3_inc_type3(p1, p2, p3, dm1, dm2, dm3, mu_aut)
+             dm3=dm3/dt
+          end if
 
 !convert back to grid mean
       dmass=dmass*cf_liquid
@@ -142,9 +142,9 @@ contains
           if (rain_params%l_2m) then
              procs(i_nr, i_praut%id)%column_data(k)=dnumber2
           end if
-          ! if (rain_params%l_3m) then
-          !    procs(i_m3r, i_praut%id)%column_data(k)=dm3
-          ! end if
+          if (rain_params%l_3m) then
+             procs(i_m3r, i_praut%id)%column_data(k)=dm3
+          end if
           
           if (l_separate_rain) then
              if (l_aaut .and. l_process) then
